@@ -4,10 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
-// Icons
-import { MapPinIcon } from "@heroicons/react/24/outline";
-import { FaSearch } from "react-icons/fa";
-import { ShoppingCart, Menu, User } from "lucide-react";
+import {  Menu, User } from "lucide-react";
 
 type Location = { value: string; label: string };
 
