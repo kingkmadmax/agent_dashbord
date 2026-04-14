@@ -4,10 +4,10 @@ import Drower from "@/component/Layout/Drower"
 
 export default function Home() {
   return (
-   <div>
-    <Drower/> 
-   
-    
-   </div>
+    <div className="bg-white">
+      <Drower />
+
+
+    </div>
   );
 }

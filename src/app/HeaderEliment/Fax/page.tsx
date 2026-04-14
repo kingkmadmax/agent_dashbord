@@ -154,7 +154,7 @@ export default function FAQPage() {
   }, [selectedCategory, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Top Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
@@ -201,11 +201,10 @@ export default function FAQPage() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === cat
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === cat
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -246,9 +245,8 @@ export default function FAQPage() {
                         </div>
                       </div>
                       <ChevronDown
-                        className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${
-                          isOpen ? "rotate-180" : ""
-                        }`}
+                        className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                          }`}
                       />
                     </button>
 

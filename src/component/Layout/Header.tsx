@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useAuthStore } from "@/Store/useAuthStore";
 
-import {  Menu, User } from "lucide-react";
+import { Menu, User } from "lucide-react";
 
 type Location = { value: string; label: string };
 
@@ -33,17 +34,6 @@ export default function Header() {
   const locationDropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // --- ROUTE HIDING ---
-  const hideHeaderRoutes = [
-    "/pages/auth/signup",
-    "/pages/auth/login",
-    "/pages/auth/passwordrest",
-  ];
-
-  if (hideHeaderRoutes.includes(pathname?.toLowerCase())) {
-    return null;
-  }
-
   // --- CLICK OUTSIDE ---
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,10 +49,34 @@ export default function Header() {
   // --- DATA ---
   const currentLocation = locations.find((loc) => loc.value === selectedLocation) || locations[0];
 
-  const menuItems = [
-    { label: "Profile", action: () => router.push("/profile") },
-    { label: "Settings", action: () => router.push("/settings") },
-    { label: "Logout", action: () => router.push("/pages/auth/login") },
+  const user = useAuthStore((state: any) => state.user);
+
+  // --- ROUTE HIDING ---
+  const hideHeaderRoutes = [
+    "/pages/auth/signup",
+    "/pages/auth/login",
+    "/pages/auth/passwordrest",
+  ];
+
+  if (hideHeaderRoutes.includes(pathname?.toLowerCase())) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    // Import supabase to sign out properly
+    const { supabase } = await import("@/lib/supabase");
+    await supabase.auth.signOut();
+    router.push("/Pages/auth/LogIn");
+    setIsDropdownOpen(false);
+  };
+
+  const menuItems = user ? [
+    { label: "Profile", action: () => { router.push("/profile"); setIsDropdownOpen(false); } },
+    { label: "Settings", action: () => { router.push("/settings"); setIsDropdownOpen(false); } },
+    { label: "Logout", action: handleLogout },
+  ] : [
+    { label: "Login", action: () => { router.push("/Pages/auth/LogIn"); setIsDropdownOpen(false); } },
+    { label: "Sign Up", action: () => { router.push("/Pages/auth/SignUp"); setIsDropdownOpen(false); } },
   ];
 
   const handleSearch = () => {
@@ -74,7 +88,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="w-full px-2 sm:px-4">
         <div className="flex items-center justify-between gap-2 py-2 max-w-[1400px] mx-auto">
-          
+
           {/* LEFT: Menu + Logo */}
           <div className="flex items-center gap-2 shrink-0">
             <div ref={mobileMenuRef} className="lg:hidden">
@@ -88,13 +102,13 @@ export default function Header() {
             </Link>
           </div>
 
-       
+
           {/* RIGHT: Nav + Account */}
           <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <nav className="hidden xl:flex items-center gap-6">
               <Link href="/HeaderEliment/about" className="text-xs font-medium hover:text-blue-600">About</Link>
               <Link href="/HeaderEliment/Fax" className="text-xs font-medium hover:text-blue-600">FAQs</Link>
-             
+
             </nav>
 
             <div ref={userDropdownRef} className="relative">
@@ -122,7 +136,7 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t py-2 bg-white flex flex-col px-4 text-sm gap-2">
             <Link href="/HeaderEliment/about" onClick={() => setMobileMenuOpen(false)}>About</Link>
-          
+
             <Link href="/HeaderEliment/Fax" onClick={() => setMobileMenuOpen(false)}>FAQs</Link>
           </div>
         )}
