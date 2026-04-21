@@ -62,7 +62,7 @@ export default function Earnings() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl border border-emerald-700 p-6 text-white shadow-lg">
+        <div className="bg-blue-600 rounded-xl border border-emerald-700 p-6 text-white shadow-lg">
           <div className="p-3 bg-white/20 rounded-lg w-fit mb-4">
             <DollarSign className="w-6 h-6 text-white" />
           </div>
@@ -113,7 +113,7 @@ export default function Earnings() {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
                 <Tooltip />
-                <Line type="monotone" dataKey="earnings" stroke="#10b981" strokeWidth={3} dot={{r: 4, fill: '#10b981'}} />
+                <Line type="monotone" dataKey="earnings" stroke="#0083ef" strokeWidth={3} dot={{r: 4, fill: '#10b981'}} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -128,7 +128,7 @@ export default function Earnings() {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
                 <Tooltip cursor={{fill: '#f9fafb'}} />
-                <Bar dataKey="bookings" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="bookings" fill="#0083ef" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

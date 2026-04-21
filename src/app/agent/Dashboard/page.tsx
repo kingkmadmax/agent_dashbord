@@ -2,19 +2,27 @@
 
 import { DollarSign, Package, Clock, TrendingUp, AlertCircle } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import Table from "@/component/Table";
 
-import {stats,recentActivity,listUsers ,earningsData} from "@/data/data"
+import {agentStats,recentActivity,listUsers,earningsData} from "@/data/data"
+import Table from "@/component/Table"
 
-export  default function Dashboard() {
+interface ChartProps {
+  title: string;
+  data: any[];
+  dataKey: string;
+  xAxisKey: string;
+  color?: string; // The '?' means it is optional
+}
+
+export  default function Dashboard({}) {
     return (
         <div  className="max-w-7xl mx-auto space-y-8">
             <div>
                 <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
                 <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your rentals.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                {agentStats.map((stat) => (
                     <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-6">
                         <div className="flex items-center justify-between">
                             <div className={`p-3 rounded-lg ${stat.bgColor}`}>
@@ -29,31 +37,38 @@ export  default function Dashboard() {
                     </div>
                 ))}
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Earnings Overview</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={earningsData}>
-            <defs>
-              <linearGradient id="colorEarnings" x1="1" y1="1" x2="0" y2="0">
-                <stop offset="5%" stopColor="#0083ef" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#0083ef" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
-            <Tooltip />
-            <Area
-              type="monotone"
-              dataKey="earnings"
-              stroke="#0083ef"
-              fillOpacity={1}
-              fill="url(#colorEarnings)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Chart 1 */}
+              <div className="w-full">
+                <Table
+                  title="Total Overview"
+                  data={earningsData}
+                  dataKey="earnings"
+                  xAxisKey="month"
+                  color="#000936"
+                />
+              </div>
+
+              {/* Chart 2 */}
+              <div className="w-full">
+                <Table
+                  title="Profit Overview"
+                  data={earningsData}
+                  dataKey="earnings"
+                  xAxisKey="month"
+                  color="#0058e5"
+                />
+              </div>
+
+            </div>
+
+          </div>
+         <div className="flex">
+          
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
   
   {/* Card 1: Recent Activity */}
   <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col shadow-sm">
@@ -109,6 +124,8 @@ export  default function Dashboard() {
   </div>
 
 </div>
+
+         </div>
     
 
 
