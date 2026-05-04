@@ -11,11 +11,11 @@ interface NavItem {
 }
 
 export const Drawer: React.FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(true);
   const pathname = usePathname();
 
   const navigation: NavItem[] = [
-    { label: 'Dashboard', path: '/Pages/Dashboard' }, 
+    { label: 'Dashboard', path: '/' },
     { label: 'Add Listing', path: '/Pages/Add_Listing' },
     { label: 'My Listings', path: '/Pages/My_Listings' },
     { label: 'Booking Request', path: '/Pages/Booking_Request' },
@@ -26,19 +26,24 @@ export const Drawer: React.FC = () => {
     { label: 'Analytics', path: '/Pages/Analytics' },
   ];
 
+  const checkActive = (path: string) => {
+    if (path === '/' && (pathname === '/' || pathname === '/Pages/Dashboard')) return true;
+    return pathname === path;
+  };
+
   return (
     <>
-      {/* 1. Backdrop (Closes drawer when clicking outside) */}
+      {/* 1. Backdrop (Closes drawer when clicking outside) - Only on mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* 2. MAIN BUTTON - This stays "Fixed" to the screen edge */}
       {/* It toggles between Menu and ChevronLeft icons */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
           fixed left-0 top-1/2 -translate-y-1/2 z-[120] 
@@ -59,25 +64,24 @@ export const Drawer: React.FC = () => {
         transform transition-transform duration-300 ease-in-out shadow-2xl
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        
+
         <div className="flex flex-col h-full">
           {/* Header */}
-       
-          
+
+
           {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
-              const isActive = pathname === item.path;
+              const isActive = checkActive(item.path);
               return (
                 <Link
                   key={item.path}
                   href={item.path}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-xl transition-all ${
-                    isActive 
-                      ? 'bg-blue-50 text-blue-700 font-semibold' 
+                  className={`flex items-center px-4 py-3 rounded-xl transition-all ${isActive
+                      ? 'bg-blue-50 text-blue-700 font-semibold'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>

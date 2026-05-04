@@ -1,13 +1,9 @@
-import Image from "next/image";
-
-import Drower from "@/component/Layout/Drower"
+import DashboardContent from "@/component/DashboardContent";
 
 export default function Home() {
   return (
     <div className="bg-white">
-      <Drower />
-
-
+      <DashboardContent />
     </div>
   );
 }

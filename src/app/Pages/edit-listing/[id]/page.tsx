@@ -57,7 +57,7 @@ export default function EditListing() {
             description: data.details?.description || "",
           });
           // Set the existing image URLs from the database array column
-          setExistingUrls(data.image || []);
+          setExistingUrls(data.images || []);
         }
       } catch (err: any) {
         console.error("Fetch error:", err.message);
@@ -154,7 +154,7 @@ export default function EditListing() {
           deposit: parseFloat(formData.deposit.toString()),
           status: formData.status,
           details: { description: formData.description },
-          image: finalImageArray, // Update the DB with the final list of URLs
+          images: finalImageArray, // Update the DB with the final list of URLs
         })
         .eq("id", id);
 

@@ -13,7 +13,7 @@ export const agentStats = [
   { label: "total renters", value: "renters$2,840", change: "+18.2%", icon: TrendingUp, color: "text-indigo-600", bgColor: "bg-indigo-50" },
 ];
 
- export const earningsData = [
+export const earningsData = [
   { month: "Oct", earnings: 1800 },
   { month: "Nov", earnings: 2200 },
   { month: "Dec", earnings: 1900 },
@@ -23,7 +23,7 @@ export const agentStats = [
   { month: "Apr", earnings: 2840 },
 ];
 
- export const recentActivity = [
+export const recentActivity = [
   { id: 1, action: "New booking request", item: "Canon EOS R5", time: "2 hours ago", type: "request" },
   { id: 2, action: "Payment received", item: "Sony A7 III", amount: "$180", time: "5 hours ago", type: "payment" },
   { id: 3, action: "Rental completed", item: "DJI Mavic 3", time: "1 day ago", type: "completed" },
@@ -32,15 +32,15 @@ export const agentStats = [
 
 
 ];
- export const listUsers = [
-  { id: 1, Image:"/next.svg", email:"king@gmial.com", name:"slame mulu" },
-  { id: 2, Image:"/next.svg",email:"babe@gmial.com", name: "kirubel Maushet"  },
-  { id: 3, Image:"/next.svg",email:"basetred@gmial.com" , name:"sohiale astamrach" },
-  { id: 4, Image:"/next.svg", email:"king@gmial.com", name:"sohiale astamrach" },
-  { id: 5, Image:"/next.svg",email:"king@gmial.com", name:"weldu abbe" },
-    { id: 6, Image:"/next.svg",email:"king@gmial.com", name:"weldu abbe" },
+export const listUsers = [
+  { id: 1, Image: "/next.svg", email: "king@gmial.com", name: "slame mulu" },
+  { id: 2, Image: "/next.svg", email: "babe@gmial.com", name: "kirubel Maushet" },
+  { id: 3, Image: "/next.svg", email: "basetred@gmial.com", name: "sohiale astamrach" },
+  { id: 4, Image: "/next.svg", email: "king@gmial.com", name: "sohiale astamrach" },
+  { id: 5, Image: "/next.svg", email: "king@gmial.com", name: "weldu abbe" },
+  { id: 6, Image: "/next.svg", email: "king@gmial.com", name: "weldu abbe" },
 
-  
+
 ];
 export const userGrowthData = [
   { month: "Jan", users: 120 },

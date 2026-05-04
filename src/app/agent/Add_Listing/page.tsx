@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import {
+import {                
   Package, MapPin, ListPlus,
   Upload, X, CheckCircle2, Loader2, ImageIcon
 } from 'lucide-react';
@@ -178,7 +178,7 @@ export default function CreateRentalPage() {
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-12 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b   pb-6">
         <div>
           <h1 className="text-3xl font-black text-gray-900">List New Equipment</h1>
           <p className="text-gray-500 mt-1">Publish your gear to the EthiRent marketplace.</p>
@@ -195,7 +195,7 @@ export default function CreateRentalPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap border-b border-gray-200 mb-8 gap-2 md:gap-8">
+      <div className="flex flex-wrap border-b border-gray-100 mb-8 gap-2 md:gap-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -203,7 +203,7 @@ export default function CreateRentalPage() {
             className={`pb-4 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 
               ${selectedTab === tab.id 
                 ? "border-blue-600 text-blue-600" 
-                : "border-transparent text-gray-400 hover:text-gray-600"
+                : "border-transparent text-gray-400 hover:text-balck"
               }`}
           >
             <tab.icon size={18} />

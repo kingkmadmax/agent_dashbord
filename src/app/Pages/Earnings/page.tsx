@@ -2,16 +2,16 @@
 
 import React from "react";
 import { Download, TrendingUp, DollarSign, Calendar } from "lucide-react";
-import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from "recharts";
 
 const monthlyData = [
@@ -25,26 +25,26 @@ const monthlyData = [
 ];
 
 const transactions = [
-  { id: 1, date: "Apr 4, 2026", item: "Canon EOS R5", renter: "Sarah Johnson", amount: 425, status: "completed", type: "rental" },
-  { id: 2, date: "Apr 3, 2026", item: "DJI Mavic 3", renter: "Michael Chen", amount: 240, status: "completed", type: "rental" },
-  { id: 3, date: "Apr 3, 2026", item: "Security Deposit", renter: "Alex Thompson", amount: 105, status: "held", type: "deposit" },
-  { id: 4, date: "Apr 2, 2026", item: "MacBook Pro 16\"", renter: "Emily Davis", amount: 525, status: "completed", type: "rental" },
-  { id: 5, date: "Apr 1, 2026", item: "Power Drill Set", renter: "Jessica Lee", amount: 135, status: "completed", type: "rental" },
-  { id: 6, date: "Mar 30, 2026", item: "Canon EOS R5", renter: "David Park", amount: 595, status: "pending", type: "rental" },
-  { id: 7, date: "Mar 29, 2026", item: "DJI Mavic 3", renter: "Lisa Wong", amount: 360, status: "completed", type: "rental" },
-  { id: 8, date: "Mar 28, 2026", item: "Security Deposit Refund", renter: "Tom Harris", amount: -200, status: "completed", type: "refund" },
+  { id: 1, date: "Apr 4, 2026", item: "Canon EOS R5", renter: "Sarah Johnson", amount: 425, status: "completed", Catagory: "car" },
+  { id: 2, date: "Apr 3, 2026", item: "DJI Mavic 3", renter: "Michael Chen", amount: 240, status: "completed", Catagory: "house" },
+  { id: 3, date: "Apr 3, 2026", item: "Security Deposit", renter: "Alex Thompson", amount: 105, status: "held", Catagory: "elctronics " },
+  { id: 4, date: "Apr 2, 2026", item: "MacBook Pro 16\"", renter: "Emily Davis", amount: 525, status: "completed", Catagory: "house" },
+  { id: 5, date: "Apr 1, 2026", item: "Power Drill Set", renter: "Jessica Lee", amount: 135, status: "completed", Catagory: "car" },
+  { id: 6, date: "Mar 30, 2026", item: "Canon EOS R5", renter: "David Park", amount: 595, status: "pending", Catagory: "car" },
+  { id: 7, date: "Mar 29, 2026", item: "DJI Mavic 3", renter: "Lisa Wong", amount: 360, status: "completed", Catagory: "elctronics " },
+  { id: 8, date: "Mar 28, 2026", item: "Security Deposit Refund", renter: "Tom Harris", amount: -200, status: "completed", Catagory: "house" },
 ];
 
 export default function Earnings() {
   const totalEarnings = transactions
-    .filter((t) => t.status === "completed" && t.type !== "refund")
+    .filter((t) => t.status === "completed" && t.Catagory !== "refund")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const pendingEarnings = transactions
     .filter((t) => t.status === "pending")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const rentalCount = transactions.filter((t) => t.type === "rental").length;
+  const rentalCount = transactions.filter((t) => t.Catagory === "car").length;
   const avgPerBooking = rentalCount > 0 ? Math.round(totalEarnings / rentalCount) : 0;
 
   return (
@@ -110,10 +110,10 @@ export default function Earnings() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="earnings" stroke="#0083ef" strokeWidth={3} dot={{r: 4, fill: '#10b981'}} />
+                <Line type="monotone" dataKey="earnings" stroke="#0083ef" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -125,9 +125,9 @@ export default function Earnings() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af'}} />
-                <Tooltip cursor={{fill: '#f9fafb'}} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af' }} />
+                <Tooltip cursor={{ fill: '#f9fafb' }} />
                 <Bar dataKey="bookings" fill="#0083ef" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -138,7 +138,7 @@ export default function Earnings() {
       {/* Transactions Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
+          <h2 className="text-xl font-bold text-gray-900">Recent Rentings</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -157,16 +157,15 @@ export default function Earnings() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{transaction.date}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{transaction.item}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{transaction.renter}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{transaction.type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{transaction.Catagory}</td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${transaction.amount > 0 ? "text-emerald-600" : "text-red-600"}`}>
                     {transaction.amount > 0 ? "+" : ""}${Math.abs(transaction.amount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                      transaction.status === "completed" ? "bg-green-100 text-green-700" :
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${transaction.status === "completed" ? "bg-green-100 text-green-700" :
                       transaction.status === "pending" ? "bg-orange-100 text-orange-700" :
-                      "bg-blue-100 text-blue-700"
-                    }`}>
+                        "bg-blue-100 text-blue-700"
+                      }`}>
                       {transaction.status}
                     </span>
                   </td>

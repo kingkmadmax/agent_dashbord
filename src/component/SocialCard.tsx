@@ -52,7 +52,7 @@ const SocialCard: React.FC = () => {
         <a
           key={social.name}
           href={social.href}
-          className={`flex items-center justify-center w-12 h-12 bg-gray-800 rounded-full transition-transform transform duration-300 active:scale-90 ${social.color}`}
+          className={`flex items-center justify-center w-12 h-12 bg-white  rounded-full transition-transform transform duration-300 active:scale-90 ${social.color}`}
         >
           {social.svg}
         </a>

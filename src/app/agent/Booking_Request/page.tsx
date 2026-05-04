@@ -152,7 +152,7 @@ export default function BookingRequests() {
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button className="flex-1 bg-emerald-600 text-white py-2.5 rounded-lg font-medium hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors">
+                  <button className="flex-1 bg-blue-700 text-white py-2.5 rounded-lg font-medium hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors">
                     <Check className="w-4 h-4" />
                     Accept Request
                   </button>
