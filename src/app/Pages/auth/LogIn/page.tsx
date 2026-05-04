@@ -1,79 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState } from 'react';
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { loginUser } from "@/app/Pages/auth/LogIn/auth";
 
-export default function Login() {
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function LoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      setErrorMsg("Please enter both email and password");
-      return;
-    }
-
     setLoading(true);
-    setErrorMsg("");
+    setMessage('');
+    setMessageType('');
 
     try {
-      // 1. Query the 'profiles' table
-      const { data: user, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', email.trim())
-        .eq('password', password)
-        .single();
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
 
-      if (error || !user) {
-        setErrorMsg("Invalid email or password.");
-        setLoading(false);
+      // Step 1: Login with Keycloak
+      const result = await loginUser(formData);
+
+      if (!result.success) {
+        setMessage(`❌ ${result.error || 'Login failed'}`);
+        setMessageType('error');
         return;
       }
 
-      // 2. SAVE THE SESSION
-      // We save the ID specifically so the Create Rental page can find it
-      localStorage.setItem("userId", user.id);
-      localStorage.setItem("user_session", JSON.stringify(user));
+      // Step 2: Validate token with your Spring Boot Backend
+      const backendRes = await fetch('http://localhost:9090/api/auth/login-sync', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${result.access_token}`,
+          'Content-Type': 'application/json'
+        },
+      });
 
-      // 3. Redirect
-      alert(`Welcome back, ${user.first_name || 'User'}!`);
-      router.push("/Pages/Dashboard");
+      if (backendRes.ok) {
+        // Success!
+        localStorage.setItem('access_token', result.access_token);
+        localStorage.setItem('refresh_token', result.refresh_token || '');
 
+        setMessage('✅ Login successful! Redirecting to home...');
+        setMessageType('success');
+
+        // Redirect after short delay
+        setTimeout(() => {
+          router.push('/');
+        }, 1500);
+
+      } else {
+        const errorData = await backendRes.json().catch(() => ({}));
+        setMessage(`❌ ${errorData.message || 'Backend validation failed'}`);
+        setMessageType('error');
+      }
     } catch (err) {
-      setErrorMsg("An unexpected error occurred.");
+      console.error("Login error:", err);
+      setMessage('❌ Network error. Please check if backend and Keycloak are running.');
+      setMessageType('error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
-      <main className="flex flex-row items-stretch justify-center w-full max-w-7xl bg-white shadow-xl rounded-2xl overflow-hidden min-h-[600px]">
+    <div className="flex min-h-screen items-center justify-center bg-white text-black">
+      <main className="flex flex-row items-stretch justify-center min-h-screen w-full max-w-7xl py-32 px-16 bg-white gap-10">
         
-        {/* Form Section */}
-        <div className="p-12 flex-1 flex flex-col justify-center max-w-md w-full space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Login to EthiRent</h1>
-            <p className="text-gray-500 mt-2">Enter your credentials to manage your gear</p>
-          </div>
+        {/* Left Side - Login Form */}
+        <div className="border-2 border-gray-300 shadow-lg p-8 rounded flex-1 flex flex-col justify-center max-w-md w-full space-y-12">
+          <h1 className="text-3xl font-semibold text-center text-black">
+            Login into Exclusive
+          </h1>
 
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-4">
+            <div className="space-y-6">
               <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border-b border-gray-300 p-2 outline-none focus:border-blue-600 transition-colors"
+                type="text"
+                placeholder="Username or Email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full p-3 border-0 border-b-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 required
               />
               <input
@@ -81,33 +95,53 @@ export default function Login() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-b border-gray-300 p-2 outline-none focus:border-blue-600 transition-colors"
+                className="w-full p-3 border-0 border-b-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-colors"
                 required
               />
             </div>
 
-            {errorMsg && <p className="text-red-500 text-sm">{errorMsg}</p>}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white h-12 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:bg-gray-400"
+              className="bg-blue-600 hover:bg-blue-700 text-white h-12 w-full rounded-md font-medium transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? "Verifying..." : "Login"}
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-600">
-            Don’t have an account? <a href="/Pages/auth/SignUp" className="text-blue-600 font-bold hover:underline">Sign Up</a>
-          </p>
+          {/* Improved Message Notification */}
+          {message && (
+            <div className={`p-4 rounded-lg text-center font-medium border ${
+              messageType === 'success' 
+                ? 'bg-green-50 text-green-700 border-green-300' 
+                : 'bg-red-50 text-red-700 border-red-300'
+            }`}>
+              {message}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row justify-between items-center text-sm gap-4">
+            <a href="/forgot-password" className="text-blue-600 hover:underline">
+              Forgot Password?
+            </a>
+            <p>
+              Don’t have an account?{' '}
+              <a href="/Pages/auth/SignUp" className="text-blue-600 font-semibold hover:underline">
+                Sign Up
+              </a>
+            </p>
+          </div>
         </div>
 
-        {/* Visual Section */}
-        <div className="hidden lg:flex bg-blue-50 flex-1 items-center justify-center relative">
-           <div className="p-20 text-center">
-              <h2 className="text-2xl font-black text-blue-900 mb-4">Rent Professional Gear in Addis</h2>
-              <p className="text-blue-700">The most trusted P2P rental marketplace in Ethiopia.</p>
-           </div>
+        {/* Right Side - Image */}
+        <div className="bg-[#D0E6EB] rounded flex-1 hidden lg:flex items-center justify-center relative overflow-hidden">
+          <Image
+            className="object-contain p-12"
+            src="/PhoneImage.png"
+            alt="Phone Image"
+            fill
+            priority
+          />
         </div>
       </main>
     </div>

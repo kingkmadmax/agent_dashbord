@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
-import {                
+import { 
   Package, MapPin, ListPlus,
   Upload, X, CheckCircle2, Loader2, ImageIcon
 } from 'lucide-react';
-import { supabase } from "@/lib/supabase";
 import { useRouter } from 'next/navigation';
+import { supabase } from "@/lib/supabase";   // Keep for now (we'll remove later)
 
 type TabType = "identity" | "terms" | "specs";
 
@@ -72,38 +72,9 @@ export default function CreateRentalPage() {
     setSpecs(prev => prev.filter((_, i) => i !== index));
   };
 
-  // ==================== HELPER: UPLOAD TO STORAGE ====================
-  const uploadImagesToStorage = async (userId: string): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-
-    for (const file of imageFiles) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('rental-images') // Your bucket name
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError.message);
-        continue;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('rental-images')
-        .getPublicUrl(filePath);
-
-      uploadedUrls.push(publicUrl);
-    }
-
-    return uploadedUrls;
-  };
-
-  // ==================== PUBLISH FUNCTION (KEPT EXACTLY AS REQUESTED) ====================
+  // ==================== PUBLISH FUNCTION - NO ACCOUNT REQUIRED ====================
   const handlePublish = async () => {
-    
-    if (!formData.name.trim() || !formData.price || !formData.location) {
+    if (!formData.name.trim() || !formData.price || !formData.location.trim()) {
       alert("Please fill in Title, Price, and Location");
       return;
     }
@@ -111,59 +82,59 @@ export default function CreateRentalPage() {
     setIsSubmitting(true);
 
     try {
-    
-      const storedUserId = localStorage.getItem("userId");
-
-      if (!storedUserId) {
-        alert("Session expired. Please log in first!");
-        router.push("/Pages/auth/LogIn");
-        return;
-      }
-
-   
-      const { data: userExists, error: userError } = await supabase
-        .from('profiles') 
-        .select('id')
-        .eq('id', storedUserId)
-        .single();
-
-      if (userError || !userExists) {
-        alert("User account not found in database. Please log in again.");
-        router.push("/Pages/auth/LogIn");
-        return;
-      }
-
-      // 3. UPLOAD IMAGES TO STORAGE
       let finalImageUrls: string[] = [];
+
+      // Upload images if any (using public bucket for now)
       if (imageFiles.length > 0) {
-        finalImageUrls = await uploadImagesToStorage(storedUserId);
+        for (const file of imageFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('rental-images')
+            .upload(fileName, file, { upsert: true });
+
+          if (uploadError) {
+            console.error("Image upload failed:", uploadError.message);
+            continue;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('rental-images')
+            .getPublicUrl(fileName);
+
+          finalImageUrls.push(publicUrl);
+        }
       }
+
       const payload = {
-        owner_id: storedUserId,
         name: formData.name.trim(),
-        category: formData.category === "Other" ? formData.customCategory : formData.category,
-        deposit: parseFloat(formData.deposit) || 0,
-        condition: formData.condition,
-        location: formData.location.trim(),
+        category: formData.category === "Other" ? formData.customCategory.trim() : formData.category,
         price: parseFloat(formData.price) || 0,
-        images: finalImageUrls, // Now includes the real Supabase Storage URLs
+        location: formData.location.trim(),
+        condition: formData.condition,
+        deposit: parseFloat(formData.deposit) || 0,
         description: formData.description.trim(),
+        images: finalImageUrls,
         specifications: specs.filter(s => s.label.trim() !== "" && s.value.trim() !== ""),
+        status: "available",
         created_at: new Date().toISOString(),
       };
+
       const { error } = await supabase
         .from('rentals')
         .insert([payload]);
 
       if (error) {
-        console.error("Supabase error:", error);
-        alert("Failed to publish: " + error.message);
+        console.error("Insert error:", error);
+        alert("Failed to publish listing: " + error.message);
       } else {
         alert("✅ Listing published successfully!");
         router.push('/Pages/My_Listings');
       }
     } catch (err: any) {
-      alert("Something went wrong: " + err.message);
+      console.error(err);
+      alert("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -172,13 +143,13 @@ export default function CreateRentalPage() {
   const tabs = [
     { id: "identity" as TabType, name: "1. Identity", icon: Package },
     { id: "terms" as TabType, name: "2. Terms & Location", icon: MapPin },
-    { id: "specs" as TabType, name: "3. Full Specifications", icon: ListPlus },
+    { id: "specs" as TabType, name: "3. Specifications", icon: ListPlus },
   ];
 
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-12 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b   pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b pb-6">
         <div>
           <h1 className="text-3xl font-black text-gray-900">List New Equipment</h1>
           <p className="text-gray-500 mt-1">Publish your gear to the EthiRent marketplace.</p>
@@ -203,7 +174,7 @@ export default function CreateRentalPage() {
             className={`pb-4 px-2 flex items-center gap-2 text-sm font-bold uppercase transition-all border-b-2 
               ${selectedTab === tab.id 
                 ? "border-blue-600 text-blue-600" 
-                : "border-transparent text-gray-400 hover:text-balck"
+                : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
           >
             <tab.icon size={18} />
@@ -216,6 +187,7 @@ export default function CreateRentalPage() {
       <div className="min-h-[450px]">
         {selectedTab === "identity" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Identity Fields */}
             <div className="bg-white p-8 rounded-3xl shadow-sm border space-y-6">
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">Product Title</label>
@@ -264,8 +236,8 @@ export default function CreateRentalPage() {
                   name="customCategory" 
                   value={formData.customCategory} 
                   onChange={handleInputChange} 
-                  placeholder="Enter category name" 
-                  className="w-full p-4 bg-gray-50 border rounded-2xl border-blue-200" 
+                  placeholder="Enter custom category" 
+                  className="w-full p-4 bg-gray-50 border rounded-2xl" 
                 />
               )}
 
@@ -276,39 +248,37 @@ export default function CreateRentalPage() {
                   value={formData.description} 
                   onChange={handleInputChange} 
                   rows={4} 
-                  placeholder="Describe your item's condition and features..." 
+                  placeholder="Describe your item..." 
                   className="w-full p-4 bg-gray-50 border rounded-2xl outline-none" 
                 />
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-dashed flex flex-col gap-4">
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
-                <div className="text-center">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-gray-600">Upload Product Images</p>
-                  <p className="text-xs text-gray-400">PNG, JPG up to 10MB</p>
-                </div>
+            {/* Image Upload */}
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-dashed">
+              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 cursor-pointer hover:bg-gray-100">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm font-bold text-gray-600">Upload Product Images</p>
+                <p className="text-xs text-gray-400">PNG, JPG up to 10MB each</p>
                 <input type="file" className="hidden" multiple accept="image/*" onChange={handleFileChange} />
               </label>
 
-              <div className="grid grid-cols-3 gap-3 overflow-y-auto max-h-[300px] p-2">
+              <div className="grid grid-cols-3 gap-3 mt-6 max-h-[300px] overflow-y-auto p-2">
                 {previewUrls.map((url, index) => (
                   <div key={index} className="relative group aspect-square">
                     <img src={url} alt="preview" className="w-full h-full object-cover rounded-xl border" />
                     <button
-                      type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100"
                     >
                       <X size={14} />
                     </button>
                   </div>
                 ))}
                 {previewUrls.length === 0 && (
-                  <div className="col-span-3 flex flex-col items-center justify-center py-10 text-gray-300">
-                    <ImageIcon size={40} />
-                    <p className="text-sm">No images selected</p>
+                  <div className="col-span-3 py-10 text-center text-gray-300">
+                    <ImageIcon size={40} className="mx-auto mb-2" />
+                    <p>No images selected yet</p>
                   </div>
                 )}
               </div>
@@ -316,6 +286,7 @@ export default function CreateRentalPage() {
           </div>
         )}
 
+        {/* Terms Tab */}
         {selectedTab === "terms" && (
           <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-sm border space-y-6">
             <div>
@@ -359,6 +330,7 @@ export default function CreateRentalPage() {
           </div>
         )}
 
+        {/* Specs Tab */}
         {selectedTab === "specs" && (
           <div className="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-sm border space-y-6">
             <div className="flex justify-between items-center border-b pb-4">
@@ -366,7 +338,7 @@ export default function CreateRentalPage() {
                 <ListPlus size={20} className="text-blue-600" />
                 Technical Specifications
               </h3>
-              <button type="button" onClick={addSpec} className="text-blue-600 text-sm font-bold hover:underline">+ Add Custom Field</button>
+              <button type="button" onClick={addSpec} className="text-blue-600 text-sm font-bold hover:underline">+ Add Field</button>
             </div>
 
             <div className="space-y-3">
@@ -376,22 +348,18 @@ export default function CreateRentalPage() {
                     type="text" 
                     value={spec.label} 
                     onChange={(e) => updateSpec(i, 'label', e.target.value)} 
-                    placeholder="e.g. Resolution" 
-                    className="flex-1 p-3 bg-gray-50 border rounded-xl outline-none focus:border-blue-300" 
+                    placeholder="Label (e.g. Weight)" 
+                    className="flex-1 p-3 bg-gray-50 border rounded-xl outline-none" 
                   />
                   <input 
                     type="text" 
                     value={spec.value} 
                     onChange={(e) => updateSpec(i, 'value', e.target.value)} 
-                    placeholder="e.g. 4K" 
-                    className="flex-1 p-3 bg-gray-100 border rounded-xl outline-none focus:border-blue-300" 
+                    placeholder="Value (e.g. 2.5kg)" 
+                    className="flex-1 p-3 bg-gray-50 border rounded-xl outline-none" 
                   />
-                  <button 
-                    type="button"
-                    onClick={() => removeSpec(i)} 
-                    className="text-gray-300 hover:text-red-500"
-                  >
-                    <X size={18} />
+                  <button onClick={() => removeSpec(i)} className="text-red-400 hover:text-red-600">
+                    <X size={20} />
                   </button>
                 </div>
               ))}
@@ -421,7 +389,7 @@ export default function CreateRentalPage() {
             else if (selectedTab === "terms") setSelectedTab("specs");
             else handlePublish();
           }}
-          className="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold shadow-md hover:bg-blue-700 transition-all"
+          className="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-700"
         >
           {selectedTab === "specs" ? (isSubmitting ? "Publishing..." : "Finish & Publish") : "Continue →"}
         </button>

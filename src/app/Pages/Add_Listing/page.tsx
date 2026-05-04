@@ -101,73 +101,75 @@ export default function CreateRentalPage() {
   };
 
   // ==================== PUBLISH FUNCTION (KEPT EXACTLY AS REQUESTED) ====================
-  const handlePublish = async () => {
-    
-    if (!formData.name.trim() || !formData.price || !formData.location) {
-      alert("Please fill in Title, Price, and Location");
-      return;
+ const handlePublish = async () => {
+  if (!formData.name.trim() || !formData.price || !formData.location.trim()) {
+    alert("Please fill in Title, Price, and Location");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    let finalImageUrls: string[] = [];
+
+    // Upload images
+   if (imageFiles.length > 0) {
+  for (const file of imageFiles) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('rental-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      continue;
     }
 
-    setIsSubmitting(true);
+    const { data: urlData } = supabase.storage
+      .from('rental-images')
+      .getPublicUrl(fileName);
 
-    try {
-    
-      const storedUserId = localStorage.getItem("userId");
+    finalImageUrls.push(urlData.publicUrl);
+  }
+}
 
-      if (!storedUserId) {
-        alert("Session expired. Please log in first!");
-        router.push("/Pages/auth/LogIn");
-        return;
-      }
+    // ✅ Clean payload - NO owner_id
+    const payload = {
+      name: formData.name.trim(),
+      category: formData.category === "Other" ? formData.customCategory.trim() : formData.category,
+      price: parseFloat(formData.price) || 0,
+      location: formData.location.trim(),
+      condition: formData.condition,
+      deposit: parseFloat(formData.deposit) || 0,
+      description: formData.description.trim(),
+      images: finalImageUrls,
+      specifications: specs.filter(s => s.label.trim() !== "" && s.value.trim() !== ""),
+      status: "available",
+    };
 
-   
-      const { data: userExists, error: userError } = await supabase
-        .from('profiles') 
-        .select('id')
-        .eq('id', storedUserId)
-        .single();
+    const { error } = await supabase
+      .from('rentals')
+      .insert([payload]);
 
-      if (userError || !userExists) {
-        alert("User account not found in database. Please log in again.");
-        router.push("/Pages/auth/LogIn");
-        return;
-      }
-
-      // 3. UPLOAD IMAGES TO STORAGE
-      let finalImageUrls: string[] = [];
-      if (imageFiles.length > 0) {
-        finalImageUrls = await uploadImagesToStorage(storedUserId);
-      }
-      const payload = {
-        owner_id: storedUserId,
-        name: formData.name.trim(),
-        category: formData.category === "Other" ? formData.customCategory : formData.category,
-        deposit: parseFloat(formData.deposit) || 0,
-        condition: formData.condition,
-        location: formData.location.trim(),
-        price: parseFloat(formData.price) || 0,
-        images: finalImageUrls, // Now includes the real Supabase Storage URLs
-        description: formData.description.trim(),
-        specifications: specs.filter(s => s.label.trim() !== "" && s.value.trim() !== ""),
-        created_at: new Date().toISOString(),
-      };
-      const { error } = await supabase
-        .from('rentals')
-        .insert([payload]);
-
-      if (error) {
-        console.error("Supabase error:", error);
-        alert("Failed to publish: " + error.message);
-      } else {
-        alert("✅ Listing published successfully!");
-        router.push('/Pages/My_Listings');
-      }
-    } catch (err: any) {
-      alert("Something went wrong: " + err.message);
-    } finally {
-      setIsSubmitting(false);
+    if (error) {
+      console.error("Insert error:", error);
+      alert("Failed to publish: " + error.message);
+    } else {
+      alert("✅ Listing published successfully!");
+      router.push('/Pages/My_Listings');
     }
-  };
+  } catch (err: any) {
+    console.error(err);
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const tabs = [
     { id: "identity" as TabType, name: "1. Identity", icon: Package },
