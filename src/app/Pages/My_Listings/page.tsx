@@ -38,7 +38,7 @@ export default function MyListings() {
     async function fetchListings() {
       try {
         setLoading(true);
-        const token = localStorage.getItem("access_token");
+        const token = localStorage.getItem("access_token") || localStorage.getItem("token");
 
         if (!token) {
           console.error("No access token found");
@@ -79,7 +79,7 @@ export default function MyListings() {
     if (!confirm("Are you sure you want to delete this listing?")) return;
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token") || localStorage.getItem("token");
       const response = await fetch(`http://localhost:9090/api/products/delete/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }

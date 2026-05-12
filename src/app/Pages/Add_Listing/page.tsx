@@ -48,7 +48,7 @@ export default function SimpleCreateRentalPage() {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token") || localStorage.getItem("token");
       if (!token) throw new Error("Please log in first.");
 
       // Extract userId

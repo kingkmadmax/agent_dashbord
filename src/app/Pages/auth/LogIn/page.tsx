@@ -45,9 +45,9 @@ export default function LoginPage() {
       });
 
       if (backendRes.ok) {
-        // ✅ KEY FIX: Save the token using the same key your fetch page uses
-        // If your fetch page looks for localStorage.getItem("token"), save it as "token"
+        // ✅ Save the access token under both keys so all pages stay compatible
         localStorage.setItem("token", result.access_token);
+        localStorage.setItem("access_token", result.access_token);
         localStorage.setItem("refresh_token", result.refresh_token || '');
 
         setMessage('✅ Login successful! Redirecting...');
