@@ -25,12 +25,13 @@ export default function LoginPage() {
       formData.append('username', username);
       formData.append('password', password);
 
-      // Step 1: Login with Keycloak
+      // Step 1: Login with Keycloak (Server Action)
       const result = await loginUser(formData);
 
-      if (!result.success) {
+      if (!result.success || !result.access_token) {
         setMessage(`❌ ${result.error || 'Login failed'}`);
         setMessageType('error');
+        setLoading(false);
         return;
       }
 
@@ -44,16 +45,17 @@ export default function LoginPage() {
       });
 
       if (backendRes.ok) {
-        // Success!
-        localStorage.setItem('access_token', result.access_token);
-        localStorage.setItem('refresh_token', result.refresh_token || '');
+        // ✅ KEY FIX: Save the token using the same key your fetch page uses
+        // If your fetch page looks for localStorage.getItem("token"), save it as "token"
+        localStorage.setItem("token", result.access_token);
+        localStorage.setItem("refresh_token", result.refresh_token || '');
 
-        setMessage('✅ Login successful! Redirecting to home...');
+        setMessage('✅ Login successful! Redirecting...');
         setMessageType('success');
 
-        // Redirect after short delay
+        // Step 3: Redirect to your bookings page
         setTimeout(() => {
-          router.push('/');
+          router.push('/booking-requests'); 
         }, 1500);
 
       } else {
@@ -61,6 +63,7 @@ export default function LoginPage() {
         setMessage(`❌ ${errorData.message || 'Backend validation failed'}`);
         setMessageType('error');
       }
+
     } catch (err) {
       console.error("Login error:", err);
       setMessage('❌ Network error. Please check if backend and Keycloak are running.');
