@@ -9,19 +9,22 @@ import {
   Eye,
   MoreVertical,
   TrendingUp,
-  Loader2
+  Loader2,
+  Trash2 // Added for the delete functionality
 } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // Ensure your supabase client is imported
 
-// 1. Define the Interface to match your Database columns
+// 1. Updated Interface to match your Java Record/Entity exactly
 interface Listing {
   id: number;
-  name: string;      // Changed from 'title' to 'name' to match your previous DB setup
+  name: string;
   category: string;
   price: number;
-  status: 'active' | 'rented' | 'available';
-  images: string[];   // Changed to array since we set the DB to text[]
-  // If you don't have views/bookings in DB yet, we can default them to 0
+  deposit: number;
+  condition: string;
+  location: string;
+  description: string;
+  imageUrl: string; // Changed from 'images: string[]' to match your Spring Boot String field
+  status?: 'active' | 'rented' | 'available'; // Optional if not in DB yet
   views?: number;
   bookings?: number;
 }
@@ -30,18 +33,37 @@ export default function MyListings() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH DATA FROM SUPABASE ---
+  // --- FETCH DATA FROM SPRING BOOT BACKEND ---
   useEffect(() => {
     async function fetchListings() {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('rentals')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const token = localStorage.getItem("access_token");
 
-        if (error) throw error;
-        if (data) setListings(data);
+        if (!token) {
+          console.error("No access token found");
+          return;
+        }
+
+        // Calling your Spring Boot "My Listings" endpoint
+        const response = await fetch("http://localhost:9090/api/products/my-listings", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        if (!response.ok) {
+ 
+      const errorBody = await response.text();
+      console.error("Backend Error Status:", response.status);
+      console.error("Backend Error Body:", errorBody);
+      throw new Error(`Failed: ${response.status} ${errorBody}`);
+}
+
+        
+
+        const data = await response.json();
+        setListings(data);
       } catch (error: any) {
         console.error("Error fetching listings:", error.message);
       } finally {
@@ -51,6 +73,27 @@ export default function MyListings() {
 
     fetchListings();
   }, []);
+
+  // --- DELETE FUNCTIONALITY ---
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this listing?")) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`http://localhost:9090/api/products/delete/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setListings(prev => prev.filter(l => l.id !== id));
+      } else {
+        alert("Failed to delete product");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -68,7 +111,7 @@ export default function MyListings() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Listings</h1>
-            <p className="text-gray-600 mt-1">Manage your rental listings</p>
+            <p className="text-gray-600 mt-1">Manage your RentTrust equipment</p>
           </div>
           <Link
             href="/Pages/Add_Listing"
@@ -84,18 +127,11 @@ export default function MyListings() {
           <StatCard title="Total Listings" value={listings.length} />
           <StatCard
             title="Active"
-            value={listings.filter((l) => l.status === "available" || l.status === "active").length}
+            value={listings.length} // Assuming all fetched are active for now
             color="text-emerald-600"
           />
-          <StatCard
-            title="Currently Rented"
-            value={listings.filter((l) => l.status === "rented").length}
-            color="text-orange-600"
-          />
-          <StatCard
-            title="Total Bookings"
-            value={listings.reduce((sum, l) => sum + (l.bookings || 0), 0)}
-          />
+          <StatCard title="Total Deposit Value" value={listings.reduce((sum, l) => sum + (l.deposit || 0), 0)} />
+          <StatCard title="Total Views" value={0} />
         </div>
 
         {/* Listings Grid */}
@@ -115,8 +151,7 @@ export default function MyListings() {
                 <div className="flex flex-col sm:flex-row">
                   <div className="relative w-full sm:w-48 h-48 bg-gray-100">
                     <Image
-                      // We take the first image from the array, or a placeholder if empty
-                      src={listing.images && listing.images.length > 0 ? listing.images[0] : "/placeholder.png"}
+                      src={listing.imageUrl || "/placeholder.png"}
                       alt={listing.name}
                       fill
                       className="object-cover"
@@ -131,32 +166,16 @@ export default function MyListings() {
                           <h3 className="text-lg font-bold text-gray-900 leading-tight">
                             {listing.name}
                           </h3>
-                          <p className="text-sm text-gray-500">{listing.category}</p>
+                          <p className="text-sm text-gray-500">{listing.category} • {listing.condition}</p>
                         </div>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${listing.status === "available" || listing.status === "active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-orange-100 text-orange-700"
-                            }`}
-                        >
-                          {listing.status}
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase bg-green-100 text-green-700">
+                          {listing.location}
                         </span>
                       </div>
 
                       <div className="flex items-baseline gap-1 mb-4">
                         <span className="text-xl font-bold text-gray-900">${listing.price}</span>
                         <span className="text-xs text-gray-500">/ day</span>
-                      </div>
-
-                      <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          <span>{listing.views || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="w-4 h-4" />
-                          <span>{listing.bookings || 0}</span>
-                        </div>
                       </div>
                     </div>
 
@@ -168,8 +187,11 @@ export default function MyListings() {
                         <Edit className="w-4 h-4" />
                         Edit
                       </Link>
-                      <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        <MoreVertical className="w-4 h-4 text-gray-600" />
+                      <button 
+                        onClick={() => handleDelete(listing.id)}
+                        className="px-3 py-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
