@@ -6,14 +6,10 @@ import Link from "next/link";
 import {
   Package,
   Edit,
-  Eye,
-  MoreVertical,
-  TrendingUp,
   Loader2,
-  Trash2 // Added for the delete functionality
+  Trash2 
 } from "lucide-react";
 
-// 1. Updated Interface to match your Java Record/Entity exactly
 interface Listing {
   id: number;
   name: string;
@@ -33,7 +29,7 @@ export default function MyListings() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH DATA FROM SPRING BOOT BACKEND ---
+
   useEffect(() => {
     async function fetchListings() {
       try {
@@ -59,9 +55,6 @@ export default function MyListings() {
       console.error("Backend Error Body:", errorBody);
       throw new Error(`Failed: ${response.status} ${errorBody}`);
 }
-
-        
-
         const data = await response.json();
         setListings(data);
       } catch (error: any) {
@@ -74,10 +67,9 @@ export default function MyListings() {
     fetchListings();
   }, []);
 
-  // --- DELETE FUNCTIONALITY ---
+
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this listing?")) return;
-
     try {
       const token = localStorage.getItem("access_token") || localStorage.getItem("token");
       const response = await fetch(`http://localhost:9090/api/products/delete/${id}`, {

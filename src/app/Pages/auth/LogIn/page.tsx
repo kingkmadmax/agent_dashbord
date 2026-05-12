@@ -55,7 +55,7 @@ export default function LoginPage() {
 
         // Step 3: Redirect to your bookings page
         setTimeout(() => {
-          router.push('/booking-requests'); 
+          router.push('/'); 
         }, 1500);
 
       } else {
